@@ -1,10 +1,6 @@
 use crate::args::PubArgs;
 use anyhow::Result;
-use clap::arg;
-use futures::executor::block_on;
 use futures::future::try_join_all;
-use futures::{stream, StreamExt, TryStream, TryStreamExt};
-use log::info;
 use pulsar::{Executor, producer, proto, Pulsar};
 
 pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<()> {

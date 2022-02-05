@@ -1,8 +1,6 @@
-use std::process::Stdio;
-
 use anyhow::Result;
-use pulsar::{Consumer, Executor, Pulsar};
 use futures::TryStreamExt;
+use pulsar::{Consumer, Executor, Pulsar};
 
 use crate::args::SubArgs;
 use crate::cmd_runner::CmdRunner;
@@ -34,7 +32,7 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
 }
 
 fn build_runner(cmd: &[String], single_spawn: bool) -> Result<CmdRunner> {
-    let runner = match &cmd[..] {
+    let runner = match cmd {
         [] => CmdRunner::build("cat", &[], single_spawn)?,
         [cmd_name, args @ .. ] => CmdRunner::build(cmd_name, args, single_spawn)?,
     };
