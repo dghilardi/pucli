@@ -1,16 +1,34 @@
 use std::process::Stdio;
 
 use anyhow::Result;
+use pulsar::{Consumer, Executor, Pulsar};
+use futures::TryStreamExt;
 
 use crate::args::SubArgs;
 use crate::cmd_runner::CmdRunner;
 
-pub fn subscribe(sub_args: SubArgs) -> Result<()> {
+pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> Result<()> {
     let mut callback_cmd = build_runner(&sub_args.command, sub_args.once)?;
 
-    for _ in 0..10 {
-        callback_cmd.process(br#"{"hello":"world"}"#).unwrap();
+    let mut consumer: Consumer<Vec<u8>, _> = pulsar
+        .consumer()
+        .with_topic(sub_args.topic)
+        .with_consumer_name("pucli")
+        .with_subscription_type(sub_args.mode.into())
+        .with_subscription(sub_args.subscription)
+        .build()
+        .await?;
+
+    while let Some(msg) = consumer.try_next().await? {
+        let out = callback_cmd.process(&msg.deserialize());
+        if let Err(err) = out {
+            log::error!("Error executing callback on message - {}", err);
+            consumer.nack(&msg).await?;
+        } else {
+            consumer.ack(&msg).await?;
+        }
     }
+
     callback_cmd.wait()?;
     Ok(())
 }
