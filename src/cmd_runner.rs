@@ -25,7 +25,9 @@ impl CmdRunner {
 
     pub fn process(&mut self, data: &[u8]) -> Result<()> {
         if let Some(ref mut execution) = self.execution {
-            execution.stdin.as_mut().ok_or_else(|| Error::msg("No stdin found in command"))?.write_all(data)?;
+            let stdin = execution.stdin.as_mut().ok_or_else(|| Error::msg("No stdin found in command"))?;
+            stdin.write_all(data)?;
+            stdin.flush()?;
         } else {
             let mut process = self.command.spawn()?;
             process.stdin.as_mut().ok_or_else(|| Error::msg("No stdin found in command"))?.write_all(data)?;

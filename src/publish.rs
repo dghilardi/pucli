@@ -1,5 +1,10 @@
 use crate::args::PubArgs;
 use anyhow::Result;
+use clap::arg;
+use futures::executor::block_on;
+use futures::future::try_join_all;
+use futures::{stream, StreamExt, TryStream, TryStreamExt};
+use log::info;
 use pulsar::{Executor, producer, proto, Pulsar};
 
 pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<()> {
@@ -17,6 +22,11 @@ pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<
         .build()
         .await?;
 
-    producer.send(args.message).await?;
+    let mut fut_rcpts = vec![];
+    for _ in 0..args.repeat.unwrap_or(1) {
+        fut_rcpts.push(producer.send(args.message.clone()).await?);
+    }
+
+    try_join_all(fut_rcpts).await?;
     Ok(())
 }

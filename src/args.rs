@@ -24,6 +24,8 @@ pub struct PubArgs {
     pub topic: String,
     #[clap(long, short)]
     pub message: String,
+    #[clap(long, short)]
+    pub repeat: Option<u32>,
 }
 
 #[derive(Args, Debug)]
