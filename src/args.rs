@@ -20,7 +20,10 @@ pub enum Commands {
 
 #[derive(Args, Debug)]
 pub struct PubArgs {
+    #[clap(long, short)]
     pub topic: String,
+    #[clap(long, short)]
+    pub message: String,
 }
 
 #[derive(Args, Debug)]
