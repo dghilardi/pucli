@@ -23,7 +23,9 @@ pub struct PubArgs {
     #[clap(long, short)]
     pub topic: String,
     #[clap(long, short)]
-    pub message: String,
+    pub message: Option<String>,
+    #[clap(long, short)]
+    pub bundle_file: Option<String>,
     #[clap(long, short)]
     pub repeat: Option<u32>,
 }
