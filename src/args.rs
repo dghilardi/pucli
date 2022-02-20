@@ -25,6 +25,8 @@ pub struct PubArgs {
     #[clap(long, short)]
     pub topic: String,
     #[clap(long, short)]
+    pub name: Option<String>,
+    #[clap(long, short)]
     pub message: Option<String>,
     #[clap(long, short)]
     pub bundle_file: Option<String>,

@@ -6,12 +6,13 @@ use crate::args::PubArgs;
 use anyhow::Result;
 use futures::future::try_join_all;
 use pulsar::{Executor, producer, proto, Pulsar};
+use uuid::Uuid;
 
 pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<()> {
     let mut producer = pulsar
         .producer()
         .with_topic(args.topic)
-        .with_name("pucli")
+        .with_name(args.name.unwrap_or_else(|| format!("pucli-{}", Uuid::new_v4())))
         .with_options(producer::ProducerOptions {
             schema: Some(proto::Schema {
                 r#type: proto::schema::Type::String as i32,
