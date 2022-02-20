@@ -1,6 +1,6 @@
 use crate::args::{Cli, Commands};
 use clap::Parser;
-use pulsar::{Pulsar, TokioExecutor};
+use pulsar::{Authentication, Pulsar, PulsarBuilder, TokioExecutor};
 use anyhow::Result;
 
 mod args;
@@ -14,7 +14,13 @@ async fn main() -> Result<()> {
     let cli_args: Cli = Cli::parse();
 
     let addr = cli_args.address.unwrap_or_else(|| String::from("pulsar://127.0.0.1:6650"));
-    let pulsar: Pulsar<_> = Pulsar::builder(addr, TokioExecutor).build().await?;
+    let authentication = cli_args.token.map(|t| Authentication { name: String::from("token"), data: t.into_bytes() });
+
+    let mut pulsar_builder: PulsarBuilder<_> = Pulsar::builder(addr, TokioExecutor);
+    if let Some(auth) = authentication {
+        pulsar_builder = pulsar_builder.with_auth(auth);
+    }
+    let pulsar = pulsar_builder.build().await?;
 
     match cli_args.subcommand {
         Commands::Pub(pub_args) => publish::publish(pulsar, pub_args).await,

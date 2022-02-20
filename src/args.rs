@@ -6,6 +6,8 @@ use clap::{AppSettings, Parser, Subcommand, Args, ArgEnum};
 pub struct Cli {
     #[clap(long, short)]
     pub address: Option<String>,
+    #[clap(long, short)]
+    pub token: Option<String>,
     #[clap(subcommand)]
     pub subcommand: Commands,
 }
