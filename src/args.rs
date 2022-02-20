@@ -32,6 +32,8 @@ pub struct PubArgs {
     pub bundle_file: Option<String>,
     #[clap(long, short)]
     pub repeat: Option<u32>,
+    #[clap(long, short)]
+    pub connections: Option<u32>,
 }
 
 #[derive(Args, Debug)]
