@@ -46,6 +46,8 @@ pub struct SubArgs {
     pub mode: SubscriptionMode,
     #[clap(long, short)]
     pub once: bool,
+    #[clap(long, short)]
+    pub new_line: bool,
     #[clap(multiple_occurrences = true, required = true)]
     pub command: Vec<String>,
 }

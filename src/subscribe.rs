@@ -18,7 +18,11 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
         .await?;
 
     while let Some(msg) = consumer.try_next().await? {
-        let out = callback_cmd.process(&msg.deserialize());
+        let mut payload = msg.deserialize();
+        if sub_args.new_line {
+            payload.push('\n' as u8);
+        }
+        let out = callback_cmd.process(&payload);
         if let Err(err) = out {
             log::error!("Error executing callback on message - {}", err);
             consumer.nack(&msg).await?;
