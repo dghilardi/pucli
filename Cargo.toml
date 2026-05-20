@@ -20,6 +20,4 @@ anyhow = "^1.0.53"
 clap = { version = "^3.0.14", features = ["derive"] }
 tokio = { version = "^1.16.1", features = ["rt", "macros"] }
 futures = "^0.3.19"
-[dependencies.pulsar]
-path = "../../libs/rust/pulsar-rs"
-version = "6.1.0"
+pulsar = "6.1.0"
