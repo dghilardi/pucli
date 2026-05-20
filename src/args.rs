@@ -34,6 +34,8 @@ pub struct PubArgs {
     pub repeat: Option<u32>,
     #[clap(long, short)]
     pub connections: Option<u32>,
+    #[clap(long, multiple_occurrences = true)]
+    pub meta: Vec<String>,
 }
 
 #[derive(Args, Debug)]
@@ -50,6 +52,8 @@ pub struct SubArgs {
     pub new_line: bool,
     #[clap(multiple_occurrences = true, required = true)]
     pub command: Vec<String>,
+    #[clap(long, multiple_occurrences = true)]
+    pub meta: Vec<String>,
 }
 
 #[derive(ArgEnum, Debug, Clone, Copy)]

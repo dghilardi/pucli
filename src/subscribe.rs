@@ -2,7 +2,7 @@ use anyhow::Result;
 use futures::channel::mpsc::{channel, Receiver};
 use futures::{select, SinkExt, StreamExt, TryStreamExt, FutureExt};
 use futures::executor::block_on;
-use pulsar::{Consumer, Executor, Pulsar};
+use pulsar::{Consumer, ConsumerOptions, Executor, Pulsar};
 use pulsar::consumer::Message;
 
 use crate::args::SubArgs;
@@ -24,6 +24,14 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
             .with_consumer_name("pucli")
             .with_subscription_type(sub_args.mode.into())
             .with_subscription(sub_args.subscription.clone())
+            .with_options(ConsumerOptions {
+                subscription_properties: sub_args.meta.iter()
+                    .map(|meta| {
+                        let mut splitted = meta.splitn(2, '=');
+                        (splitted.next().map(String::from).unwrap_or_default(), splitted.next().map(String::from).unwrap_or_default())
+                    }).collect(),
+                ..Default::default()
+            })
             .build()
             .await?;
 

@@ -6,6 +6,7 @@ use crate::args::PubArgs;
 use anyhow::Result;
 use futures::future::try_join_all;
 use pulsar::{Executor, producer, proto, Pulsar};
+use pulsar::producer::MessageBuilder;
 use uuid::Uuid;
 
 pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<()> {
@@ -50,6 +51,13 @@ async fn publish_chunk<RT: Executor>(connection_idx: usize, pulsar: &Pulsar<RT>,
                 r#type: proto::schema::Type::String as i32,
                 ..Default::default()
             }),
+            batch_size: Some(0),
+            metadata: args.meta.iter()
+                .map(|meta| {
+                    let mut splitted = meta.splitn(2, '=');
+                    (splitted.next().map(String::from).unwrap_or_default(), splitted.next().map(String::from).unwrap_or_default())
+                })
+                .collect(),
             ..Default::default()
         })
         .build()
@@ -57,7 +65,11 @@ async fn publish_chunk<RT: Executor>(connection_idx: usize, pulsar: &Pulsar<RT>,
 
     let mut fut_rcpts = vec![];
     for msg in messages {
-        fut_rcpts.push(producer.send(*msg).await?);
+        let x = MessageBuilder::new(&mut producer)
+            .with_content(*msg)
+            .with_property("hello", "hello")
+            .send().await?;
+        fut_rcpts.push(x);
     }
     try_join_all(fut_rcpts).await?;
 
