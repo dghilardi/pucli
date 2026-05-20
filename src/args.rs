@@ -1,14 +1,13 @@
-use clap::{AppSettings, Parser, Subcommand, Args, ArgEnum};
+use clap::{Parser, Subcommand, Args, ValueEnum};
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-#[clap(global_setting(AppSettings::PropagateVersion))]
+#[command(author, version, about, long_about = None, propagate_version = true)]
 pub struct Cli {
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub address: Option<String>,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub token: Option<String>,
-    #[clap(subcommand)]
+    #[command(subcommand)]
     pub subcommand: Commands,
 }
 
@@ -22,41 +21,41 @@ pub enum Commands {
 
 #[derive(Args, Debug)]
 pub struct PubArgs {
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub topic: String,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub name: Option<String>,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub message: Option<String>,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub bundle_file: Option<String>,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub repeat: Option<u32>,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub connections: Option<u32>,
-    #[clap(long, multiple_occurrences = true)]
+    #[arg(long)]
     pub meta: Vec<String>,
 }
 
 #[derive(Args, Debug)]
 pub struct SubArgs {
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub topic: String,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub subscription: String,
-    #[clap(long, short, arg_enum, default_value = "exclusive")]
+    #[arg(long, short, value_enum, default_value = "exclusive")]
     pub mode: SubscriptionMode,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub once: bool,
-    #[clap(long, short)]
+    #[arg(long, short)]
     pub new_line: bool,
-    #[clap(multiple_occurrences = true, required = true)]
+    #[arg(required = true, num_args = 1.., trailing_var_arg = true)]
     pub command: Vec<String>,
-    #[clap(long, multiple_occurrences = true)]
+    #[arg(long)]
     pub meta: Vec<String>,
 }
 
-#[derive(ArgEnum, Debug, Clone, Copy)]
+#[derive(ValueEnum, Debug, Clone, Copy)]
 pub enum SubscriptionMode {
     Exclusive,
     Shared,

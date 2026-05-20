@@ -10,14 +10,14 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-env_logger = "^0.9.0"
+env_logger = "^0.11.10"
 log = "^0.4.14"
-uuid = { version = "0.8.2", features = ["v4"] }
+uuid = { version = "^1.23.1", features = ["v4"] }
 
 ctrlc = { version = "3.2.1", features = ["termination"] }
 
 anyhow = "^1.0.53"
-clap = { version = "^3.0.14", features = ["derive"] }
+clap = { version = "^4.6.1", features = ["derive"] }
 tokio = { version = "^1.16.1", features = ["rt", "macros"] }
 futures = "^0.3.19"
 pulsar = "6.1.0"
