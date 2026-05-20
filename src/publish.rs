@@ -10,6 +10,10 @@ use pulsar::producer::MessageBuilder;
 use uuid::Uuid;
 
 pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<()> {
+    // Message source priority:
+    // 1) bundle file lines, if provided
+    // 2) single message, if provided
+    // 3) empty set
     let bundled_msgs = args.bundle_file.as_ref()
         .map(read_lines)
         .transpose()?
@@ -17,13 +21,18 @@ pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<
         .transpose()?
         .unwrap_or_else(|| args.message.clone().map(|msg| vec![msg]).unwrap_or_else(Vec::new));
 
+    // Repeat the full message set N times.
     let repeated_msg = std::iter::repeat(bundled_msgs.iter())
         .take(args.repeat.unwrap_or(1) as usize)
         .flatten()
         .collect::<Vec<_>>();
 
-    let connections = args.connections.unwrap_or(1);
-    let chunk_size = (repeated_msg.len() as f64 / connections as f64).ceil() as usize;
+    if repeated_msg.is_empty() {
+        return Ok(());
+    }
+
+    let connections = args.connections.unwrap_or(1).max(1) as usize;
+    let chunk_size = repeated_msg.len().div_ceil(connections).max(1);
 
     let send_fut = repeated_msg
         .chunks(chunk_size)

@@ -9,6 +9,8 @@ use crate::args::SubArgs;
 use crate::cmd_runner::CmdRunner;
 
 pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> Result<()> {
+    // With --once we spawn the callback command only once and keep feeding stdin.
+    // Otherwise, one process is spawned per message.
     let mut callback_cmd = build_runner(&sub_args.command, sub_args.once)?;
 
     let result = async {
@@ -61,6 +63,7 @@ async fn process_msg<EX: Executor>(
         if sub_args.new_line {
             payload.push('\n' as u8);
         }
+        // Ack/Nack is driven by callback execution result.
         let out = callback_cmd.process(&payload);
         if let Err(err) = out {
             log::error!("Error executing callback on message - {}", err);
