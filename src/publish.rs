@@ -68,7 +68,7 @@ async fn publish_chunk<RT: Executor>(connection_idx: usize, pulsar: &Pulsar<RT>,
         let x = MessageBuilder::new(&mut producer)
             .with_content(*msg)
             .with_property("hello", "hello")
-            .send().await?;
+            .send_non_blocking().await?;
         fut_rcpts.push(x);
     }
     try_join_all(fut_rcpts).await?;

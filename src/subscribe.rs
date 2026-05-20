@@ -8,11 +8,6 @@ use pulsar::consumer::Message;
 use crate::args::SubArgs;
 use crate::cmd_runner::CmdRunner;
 
-enum SubscriptionEvents {
-    NewMessage(Message<Vec<u8>>),
-    ExitSignal,
-}
-
 pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> Result<()> {
     let mut callback_cmd = build_runner(&sub_args.command, sub_args.once)?;
 
@@ -25,7 +20,7 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
             .with_subscription_type(sub_args.mode.into())
             .with_subscription(sub_args.subscription.clone())
             .with_options(ConsumerOptions {
-                subscription_properties: sub_args.meta.iter()
+                metadata: sub_args.meta.iter()
                     .map(|meta| {
                         let mut splitted = meta.splitn(2, '=');
                         (splitted.next().map(String::from).unwrap_or_default(), splitted.next().map(String::from).unwrap_or_default())
@@ -43,7 +38,7 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
                     &mut callback_cmd,
                     &sub_args,
                 ),
-                evt = termination_signal.next().fuse() => break,
+                _evt = termination_signal.next().fuse() => break,
                 complete => break,
             }.await?;
         }
