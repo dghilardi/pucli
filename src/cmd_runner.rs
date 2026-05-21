@@ -1,6 +1,6 @@
+use anyhow::{Error, Result};
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
-use anyhow::{Error, Result};
 
 pub struct CmdRunner {
     command: Command,
@@ -25,12 +25,19 @@ impl CmdRunner {
 
     pub fn process(&mut self, data: &[u8]) -> Result<()> {
         if let Some(ref mut execution) = self.execution {
-            let stdin = execution.stdin.as_mut().ok_or_else(|| Error::msg("No stdin found in command"))?;
+            let stdin = execution
+                .stdin
+                .as_mut()
+                .ok_or_else(|| Error::msg("No stdin found in command"))?;
             stdin.write_all(data)?;
             stdin.flush()?;
         } else {
             let mut process = self.command.spawn()?;
-            process.stdin.as_mut().ok_or_else(|| Error::msg("No stdin found in command"))?.write_all(data)?;
+            process
+                .stdin
+                .as_mut()
+                .ok_or_else(|| Error::msg("No stdin found in command"))?
+                .write_all(data)?;
             process.wait()?;
         };
         Ok(())

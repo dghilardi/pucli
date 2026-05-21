@@ -87,6 +87,8 @@ Key options:
 - `-m, --mode <MODE>`: `exclusive|shared|failover|key-shared` (default: `exclusive`)
 - `-o, --once`: spawn the callback command only once and keep piping messages to it
 - `-n, --new-line`: append newline (`\n`) to each payload before writing to callback stdin
+- `--ephemeral`: create a non-durable subscription (useful for troubleshooting sessions)
+- `--unsubscribe-on-exit`: explicitly unsubscribe on graceful shutdown (`Ctrl-C`)
 - `--meta <KEY=VALUE>`: consumer metadata (repeatable)
 - `<command>...`: callback command and args (required, after `--`)
 
@@ -106,6 +108,8 @@ pucli sub -t test -s workers -m shared -- cat
 ## Behavior notes
 
 - On `Ctrl-C`, the subscriber stops gracefully.
+- With `--ephemeral`, the subscription is non-durable and is not kept after consumer disconnect.
+- With `--unsubscribe-on-exit`, `pucli` unsubscribes on graceful shutdown.
 - Message ack/nack is based on callback execution success:
   - ack when command execution succeeds
   - nack when command execution fails

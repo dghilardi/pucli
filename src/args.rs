@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand, Args, ValueEnum};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None, propagate_version = true)]
@@ -49,6 +49,10 @@ pub struct SubArgs {
     pub once: bool,
     #[arg(long, short)]
     pub new_line: bool,
+    #[arg(long)]
+    pub ephemeral: bool,
+    #[arg(long)]
+    pub unsubscribe_on_exit: bool,
     #[arg(required = true, num_args = 1.., trailing_var_arg = true)]
     pub command: Vec<String>,
     #[arg(long)]

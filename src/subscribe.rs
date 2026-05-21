@@ -1,9 +1,9 @@
 use anyhow::Result;
 use futures::channel::mpsc::{channel, Receiver};
-use futures::{select, SinkExt, StreamExt, TryStreamExt, FutureExt};
 use futures::executor::block_on;
-use pulsar::{Consumer, ConsumerOptions, Executor, Pulsar};
+use futures::{select, FutureExt, SinkExt, StreamExt, TryStreamExt};
 use pulsar::consumer::Message;
+use pulsar::{Consumer, ConsumerOptions, Executor, Pulsar};
 
 use crate::args::SubArgs;
 use crate::cmd_runner::CmdRunner;
@@ -22,11 +22,18 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
             .with_subscription_type(sub_args.mode.into())
             .with_subscription(sub_args.subscription.clone())
             .with_options(ConsumerOptions {
-                metadata: sub_args.meta.iter()
+                durable: Some(!sub_args.ephemeral),
+                metadata: sub_args
+                    .meta
+                    .iter()
                     .map(|meta| {
                         let mut splitted = meta.splitn(2, '=');
-                        (splitted.next().map(String::from).unwrap_or_default(), splitted.next().map(String::from).unwrap_or_default())
-                    }).collect(),
+                        (
+                            splitted.next().map(String::from).unwrap_or_default(),
+                            splitted.next().map(String::from).unwrap_or_default(),
+                        )
+                    })
+                    .collect(),
                 ..Default::default()
             })
             .build()
@@ -42,11 +49,17 @@ pub async fn subscribe<RT: Executor>(pulsar: Pulsar<RT>, sub_args: SubArgs) -> R
                 ),
                 _evt = termination_signal.next().fuse() => break,
                 complete => break,
-            }.await?;
+            }
+            .await?;
+        }
+
+        if sub_args.ephemeral || sub_args.unsubscribe_on_exit {
+            consumer.unsubscribe().await?;
         }
 
         Ok(())
-    }.await;
+    }
+    .await;
 
     callback_cmd.wait()?;
     result
@@ -77,8 +90,7 @@ async fn process_msg<EX: Executor>(
 
 fn gen_termination_signal() -> Receiver<()> {
     let (mut tx, rx) = channel(10);
-    ctrlc::set_handler(move || block_on(tx.send(()))
-        .expect("Could not send signal on channel."))
+    ctrlc::set_handler(move || block_on(tx.send(())).expect("Could not send signal on channel."))
         .expect("Error setting Ctrl-C handler");
     rx
 }
@@ -86,7 +98,7 @@ fn gen_termination_signal() -> Receiver<()> {
 fn build_runner(cmd: &[String], single_spawn: bool) -> Result<CmdRunner> {
     let runner = match cmd {
         [] => CmdRunner::build("cat", &[], single_spawn)?,
-        [cmd_name, args @ .. ] => CmdRunner::build(cmd_name, args, single_spawn)?,
+        [cmd_name, args @ ..] => CmdRunner::build(cmd_name, args, single_spawn)?,
     };
     Ok(runner)
 }
