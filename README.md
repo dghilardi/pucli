@@ -1,4 +1,5 @@
 # pucli
+![pucli logo](assets/logo.png)
 [![Test Status](https://github.com/dghilardi/pucli/workflows/Tests/badge.svg?event=push)](https://github.com/dghilardi/pucli/actions)
 [![Crate](https://img.shields.io/crates/v/pucli.svg)](https://crates.io/crates/pucli)
 [![API](https://docs.rs/pucli/badge.svg)](https://docs.rs/pucli)
