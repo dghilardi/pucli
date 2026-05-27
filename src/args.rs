@@ -34,6 +34,10 @@ pub struct PubArgs {
     #[arg(long, short)]
     pub connections: Option<u32>,
     #[arg(long)]
+    pub delay_ms: Option<u64>,
+    #[arg(long)]
+    pub delay_step_ms: Option<u64>,
+    #[arg(long)]
     pub meta: Vec<String>,
 }
 

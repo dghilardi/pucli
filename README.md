@@ -54,6 +54,8 @@ Key options:
 - `-b, --bundle-file <FILE>`: file with one message per line
 - `-r, --repeat <N>`: repeat the message set `N` times
 - `-c, --connections <N>`: number of producers used in parallel
+- `--delay-ms <MS>`: apply a fixed delivery delay (milliseconds) to each message
+- `--delay-step-ms <MS>`: add progressive delay per message index (milliseconds)
 - `-n, --name <NAME>`: producer name prefix
 - `--meta <KEY=VALUE>`: producer metadata (repeatable)
 
@@ -74,6 +76,9 @@ pucli pub -t test -m '{"event":"ping"}' -r 100 -c 4
 
 # add producer metadata
 pucli pub -t test -m 'hello' --meta env=dev --meta source=cli
+
+# publish 300 delayed messages (5s base delay + 100ms incremental step)
+pucli pub -t test -m '{"event":"delayed"}' -r 300 --delay-ms 5000 --delay-step-ms 100
 ```
 
 ## Subscribe command

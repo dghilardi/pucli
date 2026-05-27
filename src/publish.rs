@@ -7,6 +7,7 @@ use std::fs::File;
 use std::io;
 use std::io::BufRead;
 use std::path::Path;
+use std::time::Duration;
 use uuid::Uuid;
 
 pub async fn publish<RT: Executor>(pulsar: Pulsar<RT>, args: PubArgs) -> Result<()> {
@@ -97,12 +98,20 @@ async fn publish_chunk<RT: Executor>(
         .await?;
 
     let mut fut_rcpts = vec![];
-    for msg in messages {
-        let x = MessageBuilder::new(&mut producer)
+    for (idx, msg) in messages.iter().enumerate() {
+        let base_delay_ms = args.delay_ms.unwrap_or(0);
+        let delay_step_ms = args.delay_step_ms.unwrap_or(0);
+        let total_delay_ms = base_delay_ms.saturating_add(delay_step_ms.saturating_mul(idx as u64));
+
+        let mut builder = MessageBuilder::new(&mut producer)
             .with_content(*msg)
-            .with_property("hello", "hello")
-            .send_non_blocking()
-            .await?;
+            .with_property("hello", "hello");
+
+        if total_delay_ms > 0 {
+            builder = builder.delay(Duration::from_millis(total_delay_ms))?;
+        }
+
+        let x = builder.send_non_blocking().await?;
         fut_rcpts.push(x);
     }
     try_join_all(fut_rcpts).await?;
